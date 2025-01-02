@@ -1,15 +1,15 @@
 [
 {
-  "modid": "${mod_id}",
-  "name": "${mod_name}",
-  "description": "${mod_desc}",
-  "version": "${mod_version}",
-  "mcversion": "${mc_version}",
+  "modid": "delrebase",
+  "name": "1.12.2 rebuild",
+  "description": "DePhoegon 1.12 Rebase in current intellij",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
   "authorList": ["MythiGem, zKryle, DePhoegon"],
   "credits": "",
-  "logoFile": "logo.png",
+  "logoFile": "",
   "screenshots": [],
   "dependencies": []
 }
