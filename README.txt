@@ -1,3 +1,6 @@
+==============
+outdated instructions - Will update later
+==============
 -------------------------------------------
 Source installation information for modders
 -------------------------------------------
