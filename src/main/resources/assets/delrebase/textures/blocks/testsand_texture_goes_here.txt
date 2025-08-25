@@ -1,0 +1,5 @@
+This is where the testsand.png texture file should be placed.
+The texture should be a 16x16 pixel PNG file.
+You can create a sand-like texture or use any texture you want for testing.
+
+File path: src/main/resources/assets/delrebase/textures/blocks/testsand.png
