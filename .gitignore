@@ -44,3 +44,6 @@ src/test/
 run/banned-ips.json
 run/banned-players.json
 .idea/gradle.xml
+
+# Auto-generated file, do not edit or commit
+/src/main/java/com/dephoegon/delrebase/aid/generated/*

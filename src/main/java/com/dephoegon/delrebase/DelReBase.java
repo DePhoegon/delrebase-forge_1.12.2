@@ -10,12 +10,15 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.Logger;
 
+import static com.dephoegon.delrebase.aid.generated.ModConstants.*;
+
+
 @Mod(modid = DelReBase.MOD_ID, name = DelReBase.NAME, version = DelReBase.VERSION)
 public class DelReBase
 {
-    public static final String MOD_ID = "delrebase";
-    public static final String NAME = "rebase 1.12 test";
-    public static final String VERSION = "0.0.1";
+    public static final String MOD_ID = MOD_ID_FROM_GRADLE;
+    public static final String NAME = NAME_FROM_GRADLE;
+    public static final String VERSION = VERSION_FROM_GRADLE;
 
     @SidedProxy(clientSide = "com.dephoegon.delrebase.proxy.ClientProxy",
                 serverSide = "com.dephoegon.delrebase.proxy.CommonProxy")
