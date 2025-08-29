@@ -1,5 +1,6 @@
 package com.dephoegon.delrebase.aid.modExtensions;
 
+import com.dephoegon.delrebase.DelReBase;
 import com.dephoegon.delrebase.aid.interfaces.leafColoring;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
@@ -22,8 +23,8 @@ public class leafBlock extends Block implements leafColoring {
         this.setSoundType(SoundType.PLANT);
         this.setHardness(HARDNESS);
         this.setResistance(RESISTANCE);
-        this.setUnlocalizedName(name);
-        this.setRegistryName(name);
+        this.setRegistryName(DelReBase.MOD_ID, name);
+        this.setTranslationKey(name);
         this.setCreativeTab(creativeTabs);
         this.colorType = colorType;
     }
@@ -33,15 +34,15 @@ public class leafBlock extends Block implements leafColoring {
         this.setSoundType(SoundType.PLANT);
         this.setHardness(HARDNESS);
         this.setResistance(RESISTANCE);
-        this.setUnlocalizedName(name);
-        this.setRegistryName(name);
+        this.setRegistryName(DelReBase.MOD_ID, name);
+        this.setTranslationKey(name);
         this.setCreativeTab(creativeTabs);
         this.colorType = colorType;
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public BlockRenderLayer getBlockLayer() {
+    public BlockRenderLayer getRenderLayer() {
         return BlockRenderLayer.CUTOUT;
     }
 

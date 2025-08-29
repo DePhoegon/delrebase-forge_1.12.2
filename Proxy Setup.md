@@ -1,38 +1,24 @@
 # Proxy Setup for Minecraft Asset Downloads
 
-This document explains how to set up a proxy to force HTTPS downloads for Minecraft assets when the Forge Gradle `getAssets` task tries to download from `http://resources.download.minecraft.net/`.
+This project includes proxy configuration to handle Minecraft asset downloads through Fiddler Classic, which allows redirecting HTTP requests to HTTPS for `resources.download.minecraft.net`.
 
 ## Problem
-The `getAssets` Gradle task downloads Minecraft assets using HTTP URLs, but the server has been updated to require HTTPS. This causes download failures during the build process.
+Minecraft Forge's asset download system tries to use HTTP URLs for `resources.download.minecraft.net`, but the site has been updated to only support HTTPS. This causes asset downloads to fail during the `getAssets` Gradle task and when running `runClient`.
 
 ## Solution
-Use Fiddler Classic as a local proxy to intercept HTTP requests and redirect them to HTTPS.
+Use Fiddler Classic as a proxy to automatically redirect HTTP requests to HTTPS.
 
-## Important Notes Before Setup
+### Setup Instructions
 
-⚠️ **Project Cleanup Required**: If you're adding proxy settings to an existing project that was already set up, you'll need to clean and resync the project:
+#### 1. Download and Install Fiddler Classic
+- Download Fiddler Classic from: https://www.telerik.com/fiddler/fiddler-classic
+- Install and run Fiddler Classic
 
-```bash
-./gradlew clean
-```
-
-After adding the proxy configuration, refresh/resync your IDE project (in IntelliJ: File → Reload Gradle Project).
-
-## Setup Instructions
-
-### 1. Download and Install Fiddler Classic
-
-1. Go to [https://www.telerik.com/fiddler/fiddler-classic](https://www.telerik.com/fiddler/fiddler-classic)
-2. Download Fiddler Classic (free version)
-3. Install Fiddler Classic with default settings
-
-### 2. Configure Fiddler Classic Rules
-
-1. Open Fiddler Classic
-2. Go to **Rules** → **Customize Rules** (or press Ctrl+R)
-3. This will open the CustomRules.js file in your default editor
-4. Find the function `static function OnBeforeRequest(oSession: Session)`
-5. Add the following code at the **top** of the function (right after the opening brace):
+#### 2. Configure Fiddler Classic Rules
+1. In Fiddler Classic, go to **Rules** → **Customize Rules...**
+2. This will open the CustomRules.js file in an editor
+3. Find the `static function OnBeforeRequest(oSession: Session)` function
+4. Add the following code at the top of the function (inside the opening brace):
 
 ```javascript
 if (
@@ -43,27 +29,10 @@ if (
 }
 ```
 
-The function should look like this:
-```javascript
-static function OnBeforeRequest(oSession: Session) {
-    // Add the HTTP to HTTPS redirect rule here
-    if (
-        oSession.HostnameIs("resources.download.minecraft.net")
-        && oSession.fullUrl.StartsWith("http://")
-    ) {
-        oSession.fullUrl = oSession.fullUrl.Replace("http://", "https://");
-    }
-    
-    // ...existing code...
-}
-```
+5. Save the file and restart Fiddler Classic
 
-6. Save the file and close the editor
-7. Fiddler will automatically reload the rules
-
-### 3. Gradle Properties Configuration
-
-The `gradle.properties` file is already configured with the necessary proxy settings:
+#### 3. Gradle Proxy Configuration
+The project's `gradle.properties` file already includes the necessary proxy settings:
 
 ```properties
 # Proxy settings for Gradle (Fiddler Classic on Windows)
@@ -73,45 +42,25 @@ systemProp.http.proxyPort=8888
 systemProp.http.nonProxyHosts=localhost|127.0.0.1
 ```
 
-These settings tell Gradle to route HTTP requests through Fiddler Classic running on localhost port 8888.
+#### 4. Usage
+1. Start Fiddler Classic first
+2. Run your Gradle tasks that need assets:
+   - `./gradlew getAssets` - Downloads just the assets
+   - `./gradlew runClient` - Includes asset download as part of setup
 
-### 4. Usage
+### Important Notes
 
-1. **Start Fiddler Classic** before running any Gradle tasks that download assets
-2. Ensure Fiddler is capturing traffic (File → Capture Traffic should be checked)
-3. Run your Gradle build command:
-   - `./gradlew getAssets` - Downloads assets only
-   - `./gradlew runClient` - Downloads assets and runs the client (includes getAssets as part of setup)
-   - `./gradlew build` - Full build process
-4. Fiddler will intercept the HTTP requests to `resources.download.minecraft.net` and redirect them to HTTPS
-5. You can monitor the traffic in Fiddler to verify the redirects are working
+- **Project Cleaning**: If this proxy setup was added after the project was initially set up, you may need to:
+  1. Clean the project: `./gradlew clean`
+  2. Refresh/resync the project in your IDE
+  3. Run `./gradlew getAssets` to download assets with the new proxy configuration
 
-**Note**: The `runClient` task automatically includes asset downloading as part of its setup process, so you typically don't need to run `getAssets` separately unless you specifically want to download assets without running the client.
+- **Fiddler Must Be Running**: Fiddler Classic must be running before executing any Gradle tasks that download assets, otherwise the connection will fail.
 
-### 5. Verification
+- **Alternative Tasks**: While `getAssets` is specifically for downloading assets, the `runClient` task will also download assets automatically as part of its setup process.
 
-To verify the setup is working:
-1. Run `./gradlew getAssets` with Fiddler running
-2. In Fiddler, you should see requests to `resources.download.minecraft.net`
-3. The requests should show as HTTPS (port 443) in the Host column
-4. Assets should download successfully without HTTP errors
+### Troubleshooting
 
-### 6. Troubleshooting
-
-- **Fiddler not intercepting traffic**: Ensure "Capture Traffic" is enabled in Fiddler
-- **Still getting HTTP errors**: Verify the custom rule was saved correctly and Fiddler reloaded the rules
-- **Proxy connection errors**: Check that Fiddler is running on port 8888 (default)
-- **Certificate errors**: Fiddler may need to be configured to decrypt HTTPS traffic (Tools → Options → HTTPS tab)
-
-### 7. Alternative: System-wide Solution
-
-If you want a more permanent solution, you can also modify your system's hosts file to redirect the domain, but the Fiddler approach is more flexible and easier to toggle on/off as needed.
-
-## Notes
-
-- This setup only affects Gradle builds when Fiddler is running
-- The proxy settings only apply to HTTP requests (HTTPS requests bypass the proxy due to the nonProxyHosts setting)
-- You can leave Fiddler running in the background during development
-- This solution specifically targets the `getAssets` Gradle task and similar asset download operations
-- **Important**: If proxy settings were added after initial project setup, always run `./gradlew clean` and resync your IDE project
-- The `runClient` task includes asset downloading, so using it will also trigger the same HTTP→HTTPS redirects
+- If assets still fail to download, verify Fiddler is capturing traffic (you should see requests in the Fiddler session list)
+- Ensure the CustomRules.js modification was saved and Fiddler was restarted
+- Check that no other proxy software is interfering with the connection

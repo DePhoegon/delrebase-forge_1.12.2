@@ -1,13 +1,13 @@
 [
 {
-  "modid": "delrebase",
-  "name": "1.12.2 rebuild",
-  "description": "DePhoegon 1.12 Rebase in current intellij",
+  "modid": "${mod_id}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
-  "authorList": ["DePhoegon"],
+  "authorList": ["${mod_authors}"],
   "credits": "",
   "logoFile": "",
   "screenshots": [],

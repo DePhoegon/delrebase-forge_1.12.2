@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <!-- Console appender with colored output -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <Pattern>%d{HH:mm:ss} [%t/%level] [%logger]: %msg%n</Pattern>
+            </PatternLayout>
+        </Console>
+
+        <!-- File appender for logs -->
+        <RollingFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%t/%level] [%logger]: %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="100MB" />
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Reduce noise from some verbose loggers -->
+        <Logger name="com.mojang" level="INFO" />
+        <Logger name="net.minecraft" level="INFO" />
+        <Logger name="net.minecraftforge" level="INFO" />
+        <Logger name="org.spongepowered.asm.mixin" level="INFO" />
+
+        <!-- Your mod's logger -->
+        <Logger name="com.dephoegon.delrebase" level="DEBUG" />
+
+        <!-- Root logger -->
+        <Root level="INFO">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="File" />
+        </Root>
+    </Loggers>
+</Configuration>
+
