@@ -1,39 +1,46 @@
 //file:noinspection VulnerableLibrariesLocal
+//file:noinspection GroovyAssignabilityCheck
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.24', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
 
-
-apply plugin: "net.minecraftforge.gradle"
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
-
-
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-
 version = "${mod_ver}"
 group = "${mod_group}"
-archivesBaseName = "${mod_id}"
 base { archivesName = "${mod_id}" }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 sourceCompatibility = targetCompatibility = '1.8'
+
 compileJava {
     sourceCompatibility = '8'
     targetCompatibility = '8'
 }
-
 minecraft {
     mappings channel: mc_chan, version: mc_chan_ver
 
+    // For 1.12.2, we need to use the older run configuration style
     runs {
         client {
             workingDirectory project.file('run')
-
             property 'forge.logging.markers', 'REGISTRIES'
-
             property 'forge.logging.console.level', 'debug'
 
-            property 'forge.enabledGameTestNamespaces', mod_id
+            // Mixin configuration for client
+            property 'mixin.env.disableRefMap', 'true'
 
             mods {
                 "${mod_id}" {
@@ -44,44 +51,11 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-
             property 'forge.logging.markers', 'REGISTRIES'
-
             property 'forge.logging.console.level', 'debug'
 
-            property 'forge.enabledGameTestNamespaces', mod_id
-
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        gameTestServer {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'forge.logging.console.level', 'debug'
-
-            property 'forge.enabledGameTestNamespaces', mod_id
-
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'forge.logging.console.level', 'debug'
-
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            // Mixin configuration for server
+            property 'mixin.env.disableRefMap', 'true'
 
             mods {
                 "${mod_id}" {
@@ -92,16 +66,22 @@ minecraft {
     }
 }
 
-sourceSets.main.resources { srcDir 'src/generated/resources'}
+// Configure Mixin
+mixin {
+    add sourceSets.main, "delrebase.refmap.json"
+    config "delrebase.mixins.json"
+}
 
 repositories {
     maven {
-        // location of the maven that hosts JEI files since January 2023
+        name = 'Sponge Maven'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+    maven {
         name = "Jared's maven"
         url = "https://maven.blamejared.com/"
     }
     maven {
-        // location of a maven mirror for JEI files, as a fallback
         name = "ModMaven"
         url = "https://modmaven.dev"
     }
@@ -113,19 +93,24 @@ repositories {
     }
 }
 
+
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
+
 
     // Mixin is included in Forge, so this is only needed if you want to compile against it directly.
     // compile "org.spongepowered:mixin:0.8.5"
     //runtimeOnly 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
-    runtimeOnly 'org.spongepowered:mixin:0.8.5'
+    //runtimeOnly 'org.spongepowered:mixin:0.8.5'
     //compileOnly 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
-    compileOnly 'org.spongepowered:mixin:0.8.5'
+    //compileOnly 'org.spongepowered:mixin:0.8.5'
     //annotationProcessor 'org.spongepowered:mixin:0.7-11-SNAPSHOT'
-    annotationProcessor 'org.spongepowered:mixin:0.8.5'
-}
+    //annotationProcessor 'org.spongepowered:mixin:0.8.5'
 
+    // Mixin dependencies for 1.12.2
+    implementation 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+    annotationProcessor 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+}
 // Generate a constants class with values from gradle.properties
 tasks.register('generateConstants') {
     inputs.file(prop_file)
@@ -152,34 +137,15 @@ public class ModConstants {
     }
 }
 
-// File change monitoring (if you want to watch for changes during development)
-tasks.register('watchGradleProperties') {
-    doLast {
-        def propsFile = file('gradle.properties')
-        def constantsFile = file("src/main/java/com/dephoegon/delrebase/aid/generated/ModConstants.java")
-
-        if (propsFile.lastModified() > constantsFile.lastModified()) {
-            println "gradle.properties changed - regenerating constants"
-            generateConstants.execute()
-        }
-    }
-}
-
-// Make sure constants are generated before compilation and on clean builds
+// Make sure constants are generated before compilation
 compileJava.dependsOn generateConstants
-clean.finalizedBy generateConstants
-/*
-runClient.doFirst { generateConstants }
-runServer.doFirst { generateConstants }
-setupCiWorkspace.doLast { generateConstants }
-setupDecompWorkspace.doLast { generateConstants }
-setupDevWorkspace.doLast { generateConstants }
-*/
+
 def resourceTargets = ['pack.mcmeta', 'mcmod.info']
 def replaceProperties = [
         mod_id         : mod_id, mod_name: mod_name, version: mod_ver,
         mod_authors    : mod_authors, mod_description: mod_desc, mcversion: mc_version
 ]
+
 processResources {
     inputs.properties replaceProperties
     replaceProperties.put 'project', project
@@ -188,30 +154,18 @@ processResources {
         expand replaceProperties
     }
 }
+
 jar {
     manifest {
         attributes([
                 "Specification-Title"     : mod_id,
                 "Specification-Vendor"    : mod_author_vender,
-                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : mod_ver,
                 "Implementation-Vendor"   : mod_author_vender,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "MixinConfigs"            : "delrebase.mixins.json"
         ])
     }
-}
-
-jar.finalizedBy('reobfJar')
-
-publishing {
-    repositories {
-        maven {
-            url "file://${project.projectDir}/mcmodsrepo"
-        }
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
