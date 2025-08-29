@@ -14,7 +14,6 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 version = "${mod_ver}"
@@ -24,9 +23,6 @@ archivesBaseName = "${mod_id}"
 sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
-    options.compilerArgs += [
-        '-proc:none' // Disable annotation processing to avoid Mixin processor warnings
-    ]
 }
 
 minecraft {
@@ -34,6 +30,12 @@ minecraft {
     runDir = "run"
     mappings = "${mc_map_ver}"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+
+    // Add JVM arguments to fix Log4j2 configuration issues
+    clientJvmArgs += [
+        "-Dlog4j.configurationFile=log4j2.xml",
+        "-Dlog4j2.formatMsgNoLookups=true"
+    ]
 }
 
 repositories {
@@ -45,26 +47,25 @@ dependencies {
         exclude group: 'com.google.code.gson', module: 'gson'
     }
     compile 'com.google.code.gson:gson:2.8.0'
-}
 
-// Mixin configuration, the refmap is required for obfuscation and needed for mixins to work properly in an obfuscated environment.
-// Left commented out to use the refmap line in the mixin json instead.
-// Can be set inside the mixin json as well, uncomment the line below to do so and remove the refmap line in the mixin json if you do that.
-// mixin { add sourceSets.main, "${mod_id}.refmap.json" }
+    // Add Log4j2 dependencies to resolve logging errors
+    compile 'org.apache.logging.log4j:log4j-core:2.8.1'
+    compile 'org.apache.logging.log4j:log4j-api:2.8.1'
+
+    // Add JANSI for terminal console support (version that exists for 2.8.1)
+    compile 'org.fusesource.jansi:jansi:1.17.1'
+}
 
 // Generate a constants class with values from gradle.properties
 tasks.register('generateConstants') {
-    // Keep the the file location using forward slashes, and /src/main/java/ as it is the root for the package path.
-    // Adjust the package path as necessary, ensure it matches the file location and your mod's package structure
-
-    // Define input and output files for proper up-to-date checking
-    inputs.file('gradle.properties')
-    outputs.file("src/main/java/com/dephoegon/delrebase/aid/generated/ModConstants.java")
+    inputs.file(prop_file)
+    outputs.file("${constants_file}")
 
     doLast {
-        def constantsFile = file("src/main/java/com/dephoegon/delrebase/aid/generated/ModConstants.java")
+        def constantsFile = file("${constants_file}")
         constantsFile.parentFile.mkdirs()
-        constantsFile.text = """package com.dephoegon.delrebase.aid.generated;
+        if (constantsFile.exists()) { constantsFile.setWritable(true) }
+        constantsFile.text = """package ${package_name};
 
 /**
  * Auto-generated constants from gradle.properties
@@ -76,77 +77,10 @@ public class ModConstants {
     public static final String VERSION_FROM_GRADLE = "${mod_ver}";
 }
 """
+        constantsFile.setReadOnly()
         println "Generated ModConstants.java with values from gradle.properties"
     }
 }
-
-// gradle.projectsEvaluated is a lifecycle hook that fires after all projects in a multi-project build
-// have been configured but before any tasks are executed. It's useful for configuration that depends
-// on all project settings being finalized.
-gradle.projectsEvaluated {
-    println "Projects evaluated - ensuring constants are up to date"
-    // This ensures generateConstants runs after project evaluation
-    tasks.generateConstants.execute()
-}
-
-// Task execution listener - monitors when specific tasks start/finish
-gradle.addListener(new TaskExecutionListener() {
-    @Override
-    void beforeExecute(Task task) {
-        // Fire before specific workspace setup tasks
-        if (task.name in ['setupCiWorkspace', 'setupDecompWorkspace', 'setupDevWorkspace']) {
-            println "Running generateConstants before ${task.name}"
-            tasks.generateConstants.execute()
-        }
-
-        // Fire before client/server run tasks
-        if (task.name in ['runClient', 'runServer']) {
-            println "Ensuring constants are updated before ${task.name}"
-            // Check if gradle.properties is newer than the generated file
-            def propsFile = file('gradle.properties')
-            def constantsFile = file("src/main/java/com/dephoegon/delrebase/aid/generated/ModConstants.java")
-
-            if (!constantsFile.exists() || propsFile.lastModified() > constantsFile.lastModified()) {
-                println "gradle.properties is newer - regenerating constants"
-                tasks.generateConstants.execute()
-            }
-        }
-    }
-
-    @Override
-    void afterExecute(Task task, TaskState state) {
-        // Optional: Log completion of important tasks
-        if (task.name == 'generateConstants') {
-            println "Constants generation completed"
-        }
-    }
-})
-
-// Build listener for broader build lifecycle events
-gradle.addListener(new BuildListener() {
-    @Override
-    void buildStarted(Gradle gradle) {
-        // This fires when build starts - good for initial setup
-        println "Build started - checking if constants need regeneration"
-    }
-
-    @Override
-    void settingsEvaluated(Settings settings) {}
-
-    @Override
-    void projectsLoaded(Gradle gradle) {}
-
-    @Override
-    void projectsEvaluated(Gradle gradle) {
-        // Alternative way to hook into projects evaluated
-        println "All projects evaluated via BuildListener"
-    }
-
-    @Override
-    void buildFinished(BuildResult result) {
-        println "Build finished"
-    }
-})
 
 // File change monitoring (if you want to watch for changes during development)
 tasks.register('watchGradleProperties') {
@@ -156,7 +90,7 @@ tasks.register('watchGradleProperties') {
 
         if (propsFile.lastModified() > constantsFile.lastModified()) {
             println "gradle.properties changed - regenerating constants"
-            tasks.generateConstants.execute()
+            generateConstants.execute()
         }
     }
 }
@@ -164,14 +98,11 @@ tasks.register('watchGradleProperties') {
 // Make sure constants are generated before compilation and on clean builds
 compileJava.dependsOn generateConstants
 clean.finalizedBy generateConstants
-
-// Also ensure it runs before the setup tasks (shorthand for multiple tasks)
-def setupTasks = ['setupCiWorkspace', 'setupDecompWorkspace', 'setupDevWorkspace']
-tasks.configureEach { task ->
-    if (task.name in setupTasks) {
-        task.dependsOn generateConstants
-    }
-}
+runClient.doFirst { generateConstants }
+runServer.doFirst { generateConstants }
+setupCiWorkspace.doLast { generateConstants }
+setupDecompWorkspace.doLast { generateConstants }
+setupDevWorkspace.doLast { generateConstants }
 
 processResources {
     inputs.property "version", mod_ver
@@ -188,9 +119,10 @@ processResources {
 runClient.outputs.upToDateWhen { false }
 runServer.outputs.upToDateWhen { false }
 
+mixin { add sourceSets.main, "${mod_id}.refmap.json" }
 jar {
     manifest {
-        attributes 'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker'
+        // attributes 'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker'
         attributes 'MixinConfigs': "${mod_id}.mixins.json"
         // do not use the line below without a valid reason to use access transformers. Default to Mixins Accessors when possible.  Access transformers are more powerful but also more likely to break with other mods.
         // attributes 'FMLAT': "${mod_id}_at.cfg"

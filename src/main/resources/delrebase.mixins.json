@@ -3,7 +3,6 @@
     "minVersion": "0.7",
     "package": "com.dephoegon.delrebase.mixins",
     "compatibilityLevel": "JAVA_8",
-    "refmap": "delrebase.refmap.json",
     "mixins": [
     ],
     "client": [
