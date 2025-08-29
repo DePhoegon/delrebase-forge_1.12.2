@@ -1,14 +1,18 @@
+//file:noinspection VulnerableLibrariesLocal
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
         mavenCentral()
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
 }
         
 apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'org.spongepowered.mixin'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
@@ -28,6 +32,19 @@ minecraft {
     mappings = "${mc_map_ver}"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
+
+repositories {
+    maven { url = 'https://repo.spongepowered.org/maven' }
+}
+
+dependencies {
+    compile 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+}
+
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+}
+
 processResources {
     inputs.property "version", mod_ver
     inputs.property "mcversion", mc_version
@@ -43,3 +60,10 @@ processResources {
 runClient.outputs.upToDateWhen { false }
 runServer.outputs.upToDateWhen { false }
 
+jar {
+    manifest {
+        attributes 'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker'
+        attributes 'MixinConfigs': "${mod_id}.mixins.json"
+        // attributes 'FMLAT': "${mod_id}_at.cfg"
+    }
+}
