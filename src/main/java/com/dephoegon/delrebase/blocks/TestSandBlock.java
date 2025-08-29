@@ -10,8 +10,8 @@ public class TestSandBlock extends Block {
 
     public TestSandBlock() {
         super(Material.SAND);
-        this.setRegistryName(DelReBase.MOD_ID, "testsand");
         this.setTranslationKey("testsand");
+        this.setRegistryName(DelReBase.MOD_ID, "testsand");
         this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
         this.setSoundType(SoundType.SAND);
         this.setHardness(0.5F);

@@ -35,6 +35,7 @@ public class leafBlock extends Block implements leafColoring {
         this.setHardness(HARDNESS);
         this.setResistance(RESISTANCE);
         this.setRegistryName(DelReBase.MOD_ID, name);
+        this.setTranslationKey(name);
         this.setCreativeTab(creativeTabs);
         this.colorType = colorType;
     }

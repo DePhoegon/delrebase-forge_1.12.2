@@ -97,20 +97,25 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
 
+    // Mixin dependencies for 1.12.2 with comprehensive ASM conflict resolution
+    implementation('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+        exclude group: 'org.ow2.asm'
+    }
+    annotationProcessor('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+        exclude group: 'org.ow2.asm'
+    }
 
-    // Mixin is included in Forge, so this is only needed if you want to compile against it directly.
-    // compile "org.spongepowered:mixin:0.8.5"
-    //runtimeOnly 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
-    //runtimeOnly 'org.spongepowered:mixin:0.8.5'
-    //compileOnly 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
-    //compileOnly 'org.spongepowered:mixin:0.8.5'
-    //annotationProcessor 'org.spongepowered:mixin:0.7-11-SNAPSHOT'
-    //annotationProcessor 'org.spongepowered:mixin:0.8.5'
-
-    // Mixin dependencies for 1.12.2
-    implementation 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
-    annotationProcessor 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+    // Force consistent ASM 5.2 versions to match what Forge 1.12.2 uses
+    implementation 'org.ow2.asm:asm-debug-all:5.2'
+    configurations.forEach {
+        it.resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.ow2.asm' && details.requested.name.startsWith('asm')) {
+                details.useVersion '5.2'
+            }
+        }
+    }
 }
+
 // Generate a constants class with values from gradle.properties
 tasks.register('generateConstants') {
     inputs.file(prop_file)

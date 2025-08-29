@@ -5,7 +5,7 @@
     "compatibilityLevel": "JAVA_8",
     "refmap": "delrebase.refmap.json",
     "mixins": [
-        "MixinNetworkRegistry"
+
     ],
     "client": [],
     "server": [],
