@@ -107,10 +107,16 @@ dependencies {
 
     // Force consistent ASM 5.2 versions to match what Forge 1.12.2 uses
     implementation 'org.ow2.asm:asm-debug-all:5.2'
-    configurations.forEach {
-        it.resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'org.ow2.asm' && details.requested.name.startsWith('asm')) {
-                details.useVersion '5.2'
+
+    // Add explicit exclusions for any other dependencies that might pull in ASM 6.2
+    configurations.all {
+        resolutionStrategy {
+            force 'org.ow2.asm:asm-debug-all:5.2'
+            eachDependency { details ->
+                if (details.requested.group == 'org.ow2.asm' && details.requested.name != 'asm-debug-all') {
+                    details.useVersion '5.2'
+                    details.because 'Force ASM 5.2 to match Forge 1.12.2 requirements'
+                }
             }
         }
     }
@@ -155,8 +161,16 @@ processResources {
     inputs.properties replaceProperties
     replaceProperties.put 'project', project
 
+    // Set duplicate handling strategy
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
     filesMatching(resourceTargets) {
         expand replaceProperties
+    }
+
+    // Ensure all resources are included
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*'
     }
 }
 
