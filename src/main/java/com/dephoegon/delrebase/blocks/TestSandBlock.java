@@ -1,5 +1,6 @@
 package com.dephoegon.delrebase.blocks;
 
+import com.dephoegon.delrebase.DelReBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
@@ -9,8 +10,8 @@ public class TestSandBlock extends Block {
 
     public TestSandBlock() {
         super(Material.SAND);
-        this.setUnlocalizedName("testsand");
-        this.setRegistryName("testsand");
+        this.setRegistryName(DelReBase.MOD_ID, "testsand");
+        this.setTranslationKey("testsand");
         this.setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
         this.setSoundType(SoundType.SAND);
         this.setHardness(0.5F);

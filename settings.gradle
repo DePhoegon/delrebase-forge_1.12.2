@@ -1,14 +1,17 @@
 buildscript {
     repositories {
-        maven { url = 'https://maven.minecraftforge.net/' }
-        maven { url = 'https://repo.spongepowered.org/maven' }
+        maven { url = 'https://maven.minecraftforge.net/releases' }
         mavenCentral()
+        gradlePluginPortal()
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
     }
     dependencies {
-        classpath group: "net.minecraftforge.gradle", name: "ForgeGradle", version: "6+"
-        classpath group: "org.spongepowered", name: "mixingradle", version: "0.7.+"
+        classpath group: "net.minecraftforge.gradle", name: "ForgeGradle", version: '[6.0,6.2)'
+        classpath group: "org.spongepowered", name: "mixingradle", version: "0.7-SNAPSHOT"
+        //classpath group: "org.spongepowered", name: "mixingradle", version: "0.7+"
     }
 }
+
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.5.0'
 }

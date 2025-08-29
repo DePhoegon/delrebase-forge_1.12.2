@@ -1,6 +1,6 @@
 {
     "pack": {
-        "description": "DePhoegons Rebuild in 1.12",
+        "description": "${mod_name} - ${mod_description}",
         "pack_format": 3
     }
 }

@@ -1,25 +1,29 @@
 //file:noinspection VulnerableLibrariesLocal
 
 
-apply plugin: "java"
 apply plugin: "net.minecraftforge.gradle"
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+apply plugin: 'java'
 apply plugin: 'maven-publish'
+apply plugin: 'org.spongepowered.mixin'
+
+
+
+// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 version = "${mod_ver}"
 group = "${mod_group}"
-// archivesBaseName = "${mod_id}"
+archivesBaseName = "${mod_id}"
 base { archivesName = "${mod_id}" }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
+    sourceCompatibility = '8'
+    targetCompatibility = '8'
 }
 
 minecraft {
     mappings channel: mc_chan, version: mc_chan_ver
-
-    copyIdeResources = true
 
     runs {
         client {
@@ -114,7 +118,12 @@ dependencies {
 
     // Mixin is included in Forge, so this is only needed if you want to compile against it directly.
     // compile "org.spongepowered:mixin:0.8.5"
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    //runtimeOnly 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+    runtimeOnly 'org.spongepowered:mixin:0.8.5'
+    //compileOnly 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+    compileOnly 'org.spongepowered:mixin:0.8.5'
+    //annotationProcessor 'org.spongepowered:mixin:0.7-11-SNAPSHOT'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5'
 }
 
 // Generate a constants class with values from gradle.properties
@@ -166,20 +175,19 @@ setupCiWorkspace.doLast { generateConstants }
 setupDecompWorkspace.doLast { generateConstants }
 setupDevWorkspace.doLast { generateConstants }
 */
-
+def resourceTargets = ['pack.mcmeta', 'mcmod.info']
+def replaceProperties = [
+        mod_id         : mod_id, mod_name: mod_name, version: mod_ver,
+        mod_authors    : mod_authors, mod_description: mod_desc, mcversion: mc_version
+]
 processResources {
-    inputs.property "version", mod_ver
-    inputs.property "mcversion", mc_version
+    inputs.properties replaceProperties
+    replaceProperties.put 'project', project
 
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-        expand 'version': mod_ver, 'mcversion':mc_version
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+    filesMatching(resourceTargets) {
+        expand replaceProperties
     }
 }
-
 jar {
     manifest {
         attributes([
@@ -187,7 +195,7 @@ jar {
                 "Specification-Vendor"    : mod_author_vender,
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Version"  : mod_ver,
                 "Implementation-Vendor"   : mod_author_vender,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
@@ -197,11 +205,6 @@ jar {
 jar.finalizedBy('reobfJar')
 
 publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact jar
-        }
-    }
     repositories {
         maven {
             url "file://${project.projectDir}/mcmodsrepo"
