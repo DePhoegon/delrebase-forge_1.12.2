@@ -1,0 +1,5 @@
+# This is a placeholder for the test_inventory GUI texture
+# In a real implementation, this would be a 176x166 PNG texture file
+# The GUI should have slots for 3 inventory items and standard player inventory layout
+# For now, this serves as a reference that the GUI texture file should be placed here
+

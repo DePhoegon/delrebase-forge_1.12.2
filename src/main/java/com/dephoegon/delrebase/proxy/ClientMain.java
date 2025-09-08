@@ -2,6 +2,8 @@ package com.dephoegon.delrebase.proxy;
 
 import com.dephoegon.delrebase.aid.interfaces.leafColoring;
 import com.dephoegon.delrebase.init.ModBlocks;
+import com.dephoegon.delrebase.init.ModItems;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.color.BlockColors;
@@ -15,16 +17,22 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 @Mod.EventBusSubscriber(Side.CLIENT)
-public class ClientProxy extends CommonProxy {
+public class ClientMain extends ServerMain {
 
     @SubscribeEvent
     public static void registerModels(ModelRegistryEvent event) {
         // Register item models for client-side rendering
-        registerItemModel(Item.getItemFromBlock(ModBlocks.TEST_SAND), 0, "testsand");
-        registerItemModel(Item.getItemFromBlock(ModBlocks.TEST_LEAF), 0, "testleaf");
+        for (Block block : ModBlocks.TEST_BLOCKS) {
+            if (block.getRegistryName() == null) { continue; }
+            registerItemModel(Item.getItemFromBlock(block), 0, block.getRegistryName().getPath());
+        }
+
+        for (Item planItem : ModItems.PLAN_ITEMS) {
+            if (planItem.getRegistryName() != null) { continue; }
+            registerItemModel(planItem, 0, planItem.getRegistryName().getPath());
+        }
     }
 
     @SubscribeEvent

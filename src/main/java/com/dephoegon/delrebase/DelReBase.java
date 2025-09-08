@@ -1,7 +1,6 @@
 package com.dephoegon.delrebase;
 
-import com.dephoegon.delrebase.aid.generated.ModConstants;
-import com.dephoegon.delrebase.proxy.CommonProxy;
+import com.dephoegon.delrebase.proxy.ServerMain;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -19,9 +18,9 @@ public class DelReBase
     public static final String NAME = NAME_FROM_GRADLE;
     public static final String VERSION = VERSION_FROM_GRADLE;
 
-    @SidedProxy(clientSide = "com.dephoegon.delrebase.proxy.ClientProxy",
-                serverSide = "com.dephoegon.delrebase.proxy.CommonProxy")
-    public static CommonProxy proxy;
+    @SidedProxy(clientSide = "com.dephoegon.delrebase.proxy.ClientMain",
+                serverSide = "com.dephoegon.delrebase.proxy.ServerMain")
+    public static ServerMain proxy;
 
     @Mod.Instance(MOD_ID)
     public static DelReBase instance;

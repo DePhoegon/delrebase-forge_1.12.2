@@ -130,8 +130,8 @@ public class ClientProxy extends CommonProxy {
 #### 3. Updated DelReBase.java
 **Added proxy system:**
 ```java
-@SidedProxy(clientSide = "com.dephoegon.delrebase.proxy.ClientProxy", 
-            serverSide = "com.dephoegon.delrebase.proxy.CommonProxy")
+@SidedProxy(clientSide = "com.dephoegon.delrebase.proxy.ClientMain", 
+            serverSide = "com.dephoegon.delrebase.proxy.ServerMain")
 public static CommonProxy proxy;
 ```
 

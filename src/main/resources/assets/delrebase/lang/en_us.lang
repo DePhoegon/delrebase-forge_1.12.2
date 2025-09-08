@@ -1,2 +1,10 @@
 tile.testsand.name=Test Sand Block
+tile.test_inventory_block.name=Test Inventory Block
+container.test_inventory_block=Test Inventory
 
+item.wall_plans.name=Wall Plans
+item.slab_plans.name=Slab Plans
+item.fence_plans.name=Fence Plans
+item.fence_gate_plans.name=Fence Gate Plans
+item.stair_plans.name=Stair Plans
+item.armor_compound.name=Armor Compound
